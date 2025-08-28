@@ -8,6 +8,7 @@ import (
 
 type Config struct {
     Port         string
+    GRPCPort     string
     PostgresDSN  string
     RedisAddr    string
     RedisPass    string
@@ -19,7 +20,8 @@ type Config struct {
 func Load() *Config {
     c := &Config{
         Port:         getEnv("AUTH_PORT", "8080"),
-        PostgresDSN:  getEnv("POSTGRES_DSN", "postgres://postgres:1024@localhost:5432/TelegramLite?sslmode=disable"),
+        GRPCPort:     getEnv("AUTH_GRPC_PORT", "9090"),
+        PostgresDSN:  getEnv("POSTGRES_DSN", "postgres://postgres:1024@localhost:5432/telegramlite?sslmode=disable"),
         RedisAddr:    getEnv("REDIS_ADDR", "localhost:6379"),
         RedisPass:    getEnv("REDIS_PASS", ""),
         JWTSecret:    getEnv("JWT_SECRET", "dev-secret-please-change"),

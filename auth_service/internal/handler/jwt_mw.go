@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jacl-coder/auth_service/pkg/jwtutil"
+	"telegramlite/auth_service/pkg/jwtutil"
 )
 
 func jwtMiddleware(jwtm *jwtutil.JWTManager) gin.HandlerFunc {

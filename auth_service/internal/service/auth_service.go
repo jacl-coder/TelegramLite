@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jacl-coder/auth_service/config"
-	"github.com/jacl-coder/auth_service/internal/repository"
-	"github.com/jacl-coder/auth_service/pkg/hash"
-	"github.com/jacl-coder/auth_service/pkg/jwtutil"
+	"telegramlite/auth_service/config"
+	"telegramlite/auth_service/internal/repository"
+	"telegramlite/auth_service/pkg/hash"
+	"telegramlite/auth_service/pkg/jwtutil"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -88,22 +88,25 @@ func (s *authService) Refresh(ctx context.Context, refreshToken string) (string,
 	if err := s.rdb.Del(ctx, key).Err(); err != nil {
 		return "", "", err
 	}
-	// mint access for user id (need to fetch username/role)
-	// naive: convert uid to int and lookup user
+	// convert uid to int and lookup user
 	var userID int64
 	_, err = fmt.Sscanf(uid, "%d", &userID)
 	if err != nil {
 		return "", "", err
 	}
-	u, err := s.users.GetByUsername(ctx, "") // placeholder, better to store username in value
-	_ = u
-	// For demo, we'll skip name lookup and mint token with userID only
-	at, err := s.jwt.Mint(userID, "user", "user")
+	// fetch user by ID to get username and role
+	u, err := s.users.GetByID(ctx, userID)
+	if err != nil {
+		return "", "", errors.New("user not found")
+	}
+	// mint new access token with correct user info
+	at, err := s.jwt.Mint(u.ID, u.Username, u.Role)
 	if err != nil {
 		return "", "", err
 	}
-	newRT := fmt.Sprintf("rt-%d-%d", userID, time.Now().UnixNano())
-	if err := s.rdb.Set(ctx, "refresh:"+newRT, userID, s.cfg.RefreshTTL).Err(); err != nil {
+	// generate new refresh token
+	newRT := fmt.Sprintf("rt-%d-%d", u.ID, time.Now().UnixNano())
+	if err := s.rdb.Set(ctx, "refresh:"+newRT, u.ID, s.cfg.RefreshTTL).Err(); err != nil {
 		return "", "", err
 	}
 	return at, newRT, nil

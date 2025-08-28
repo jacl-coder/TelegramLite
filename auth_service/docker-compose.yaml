@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1024
-      POSTGRES_DB: authdb
+      POSTGRES_DB: telegramlite
     ports:
       - "5432:5432"
     volumes:

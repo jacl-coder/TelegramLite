@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jacl-coder/auth_service/internal/service"
-	"github.com/jacl-coder/auth_service/pkg/jwtutil"
+	"telegramlite/auth_service/internal/service"
+	"telegramlite/auth_service/pkg/jwtutil"
 )
 
 type authReq struct {
