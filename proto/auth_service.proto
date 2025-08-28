@@ -2,11 +2,12 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "./auth_service/pb;pb"; 
+option go_package = "./auth/pb;pb"; 
 
 service AuthService {
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
+  rpc Refresh (RefreshRequest) returns (RefreshResponse);
   rpc Logout (LogoutRequest) returns (LogoutResponse);
 }
 
@@ -19,6 +20,7 @@ message RegisterResponse {
   bool success = 1;
   string message = 2;
   int64 user_id = 3;
+  string error = 4;
 }
 
 message LoginRequest {
@@ -29,15 +31,30 @@ message LoginRequest {
 message LoginResponse {
   bool success = 1;
   string message = 2;
-  string token = 3;
-  int64 user_id = 4;
+  string access_token = 3;
+  string refresh_token = 4;
+  int64 user_id = 5;
+  string error = 6;
+}
+
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message RefreshResponse {
+  bool success = 1;
+  string message = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  string error = 5;
 }
 
 message LogoutRequest {
-  string token = 1;
+  string refresh_token = 1;
 }
 
 message LogoutResponse {
   bool success = 1;
   string message = 2;
+  string error = 3;
 }
