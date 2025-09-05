@@ -47,7 +47,6 @@ proto/          # 协议定义（Protobuf）
 docker/         # Docker & 部署相关
 scripts/        # 运维与辅助脚本
 docs/           # 设计与说明文档
-test/           # 测试代码
 third_party/    # 第三方依赖
 README.md       # 项目说明
 ```
