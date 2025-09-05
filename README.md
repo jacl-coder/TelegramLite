@@ -21,10 +21,12 @@ TelegramLite 是一个用 C++ 实现的分布式即时通讯（IM）系统，支
 
 
 ### C++ 负责的核心高性能服务
+
 - Gateway（网关服务）：C++ (Boost.Asio / Seastar / Envoy)
 - Msg（消息服务）：C++ + Kafka/Raft + 自研存储引擎/高性能 KV
 
 ### Go 负责的高效业务服务
+
 - Auth（认证服务）：Go + gRPC + JWT + PostgreSQL/Redis
 - User（用户服务）：Go + gRPC + PostgreSQL/Redis
 - File（文件服务）：Go + MinIO/S3 + Nginx/CDN
@@ -52,16 +54,59 @@ README.md       # 项目说明
 
 ## 快速开始
 
-1. 安装依赖：C++17、Go 1.22、CMake、Docker、PostgreSQL、Redis、MinIO、Kafka、gRPC、Protobuf
-2. 配置服务：修改 config/ 下相关配置文件，确保数据库、缓存、消息队列等可用
-3. 构建项目：
-   ```sh
-   mkdir -p build && cd build
-   cmake ..
-   make -j$(nproc)
-   ```
-4. 启动依赖服务（可用 docker-compose）
-5. 启动各微服务，参考 docs/分布式 IM 项目设计.md
+### 环境要求
+
+- Go 1.24.7+
+- PostgreSQL 12+
+- Redis 6+
+- Docker & Docker Compose
+
+### 1. 克隆项目
+
+```sh
+git clone https://github.com/jacl-coder/TelegramLite.git
+cd TelegramLite
+```
+
+### 2. 启动基础设施 (数据库、缓存)
+
+```sh
+cd docker
+docker-compose up -d postgres redis
+```
+
+### 3. 启动 Auth Service
+
+```sh
+cd auth_service
+go mod tidy
+./auth-server
+```
+
+服务将启动在：
+
+- HTTP API: http://localhost:8080
+- gRPC API: grpc://localhost:50051
+
+### 4. 测试接口
+
+```sh
+# 健康检查
+curl http://localhost:8080/api/v1/health
+
+# 用户注册
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"13800138000","username":"testuser","password":"password123","device_token":"web-001","device_type":"web"}'
+```
+
+## 项目状态
+
+- ✅ **M0: 项目基础搭建** (已完成)
+  - Auth Service 完整实现 (HTTP + gRPC)
+  - 用户认证、多设备管理
+  - 数据库设计和迁移
+- 🚀 **M1: 用户体系+Gateway** (计划中)
 
 ## 贡献指南
 

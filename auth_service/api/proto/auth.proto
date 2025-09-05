@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package telegramlite.auth;
+
+option go_package = "github.com/jacl-coder/telegramlite/auth_service/api/proto";
+
+import "google/protobuf/timestamp.proto";
+
+// Auth Service - 认证服务接口定义
+service AuthService {
+  // 用户注册
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  
+  // 用户登录  
+  rpc Login(LoginRequest) returns (LoginResponse);
+  
+  // 刷新Token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  
+  // 用户注销
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  
+  // 验证Token (给其他服务调用)
+  rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse);
+  
+  // 获取用户信息 (通过Token)
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+  
+  // 健康检查
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+// ========== 通用类型 (Auth Service 独立定义) ==========
+
+// 通用响应结构
+message Response {
+  int32 code = 1;           // 状态码 0=成功
+  string message = 2;       // 响应消息
+  google.protobuf.Timestamp timestamp = 3; // 响应时间
+}
+
+// 用户信息 (Auth Service 视角)
+message UserInfo {
+  uint64 id = 1;
+  string phone = 2;
+  string email = 3;
+  string username = 4;
+  string avatar_url = 5;
+  bool is_active = 6;
+  google.protobuf.Timestamp last_login_at = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// 设备信息
+message DeviceInfo {
+  uint64 id = 1;
+  uint64 user_id = 2;
+  string device_token = 3;
+  DeviceType device_type = 4;
+  string device_name = 5;
+  string push_token = 6;
+  bool is_online = 7;
+  google.protobuf.Timestamp last_seen_at = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+// 设备类型枚举
+enum DeviceType {
+  DEVICE_TYPE_UNSPECIFIED = 0;
+  DEVICE_TYPE_IOS = 1;
+  DEVICE_TYPE_ANDROID = 2;
+  DEVICE_TYPE_WEB = 3;
+  DEVICE_TYPE_DESKTOP = 4;
+}
+
+// Token 信息
+message TokenInfo {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;    // Bearer
+  int64 expires_in = 4;     // 秒
+}
+
+// ========== 请求/响应消息 ==========
+
+// 注册请求
+message RegisterRequest {
+  string phone = 1;
+  string email = 2;
+  string username = 3;
+  string password = 4;
+  string device_token = 5;
+  DeviceType device_type = 6;
+  string device_name = 7;
+}
+
+// 注册响应
+message RegisterResponse {
+  Response response = 1;
+  RegisterData data = 2;
+}
+
+message RegisterData {
+  UserInfo user = 1;
+  DeviceInfo device = 2;
+  TokenInfo token = 3;
+}
+
+// 登录请求
+message LoginRequest {
+  oneof credential {
+    string phone = 1;
+    string email = 2;
+    string username = 3;
+  }
+  string password = 4;
+  string device_token = 5;
+  DeviceType device_type = 6;
+  string device_name = 7;
+}
+
+// 登录响应
+message LoginResponse {
+  Response response = 1;
+  LoginData data = 2;
+}
+
+message LoginData {
+  UserInfo user = 1;
+  DeviceInfo device = 2;
+  TokenInfo token = 3;
+}
+
+// 刷新Token请求
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+// 刷新Token响应
+message RefreshTokenResponse {
+  Response response = 1;
+  TokenInfo token = 2;
+}
+
+// 注销请求
+message LogoutRequest {
+  string device_token = 1;
+}
+
+// 注销响应
+message LogoutResponse {
+  Response response = 1;
+}
+
+// 验证Token请求 (内部服务调用)
+message VerifyTokenRequest {
+  string access_token = 1;
+}
+
+// 验证Token响应
+message VerifyTokenResponse {
+  Response response = 1;
+  VerifyTokenData data = 2;
+}
+
+message VerifyTokenData {
+  bool valid = 1;
+  uint64 user_id = 2;
+  uint64 device_id = 3;
+  string device_token = 4;
+  google.protobuf.Timestamp expires_at = 5;
+}
+
+// 获取用户信息请求
+message GetUserInfoRequest {
+  string access_token = 1;
+}
+
+// 获取用户信息响应
+message GetUserInfoResponse {
+  Response response = 1;
+  UserInfo user = 2;
+}
+
+// 健康检查请求
+message HealthRequest {
+}
+
+// 健康检查响应
+message HealthResponse {
+  Response response = 1;
+  HealthData data = 2;
+}
+
+message HealthData {
+  string service = 1;
+  string status = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
