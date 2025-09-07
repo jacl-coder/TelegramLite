@@ -280,6 +280,91 @@ func (r *UserCacheRepository) GetSearchResult(ctx context.Context, keyword strin
 	return users, nil
 }
 
+// GetUserSettings 从缓存获取用户设置
+func (r *UserCacheRepository) GetUserSettings(ctx context.Context, userID uint) (*model.UserSetting, error) {
+	key := fmt.Sprintf(UserSettingKey, userID)
+	data, err := r.redis.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, nil // 缓存未命中
+		}
+		return nil, fmt.Errorf("failed to get user settings from cache: %w", err)
+	}
+
+	var settings model.UserSetting
+	if err := json.Unmarshal([]byte(data), &settings); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal user settings: %w", err)
+	}
+
+	return &settings, nil
+}
+
+// SetUserSettings 缓存用户设置
+func (r *UserCacheRepository) SetUserSettings(ctx context.Context, userID uint, settings *model.UserSetting) error {
+	key := fmt.Sprintf(UserSettingKey, userID)
+	data, err := json.Marshal(settings)
+	if err != nil {
+		return fmt.Errorf("failed to marshal user settings: %w", err)
+	}
+
+	return r.redis.Set(ctx, key, data, UserCacheTTL).Err()
+}
+
+// InvalidateUserSettings 使用户设置缓存失效
+func (r *UserCacheRepository) InvalidateUserSettings(ctx context.Context, userID uint) error {
+	key := fmt.Sprintf(UserSettingKey, userID)
+	return r.redis.Del(ctx, key).Err()
+}
+
+// CheckUserBlocked 从缓存检查用户是否被屏蔽
+func (r *UserCacheRepository) CheckUserBlocked(ctx context.Context, userID, targetUserID uint) (bool, bool, error) {
+	key := fmt.Sprintf("user:blocking:%d", userID)
+	blocked, err := r.redis.SIsMember(ctx, key, targetUserID).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return false, false, nil // 缓存未命中
+		}
+		return false, false, fmt.Errorf("failed to check blocked status from cache: %w", err)
+	}
+	return blocked, true, nil // blocked结果, 缓存命中, 无错误
+}
+
+// SetUserBlocking 缓存用户屏蔽关系
+func (r *UserCacheRepository) SetUserBlocking(ctx context.Context, userID uint, blockedUserIDs []uint) error {
+	if len(blockedUserIDs) == 0 {
+		return nil
+	}
+
+	key := fmt.Sprintf("user:blocking:%d", userID)
+
+	// 先删除旧缓存
+	r.redis.Del(ctx, key)
+
+	// 添加所有屏蔽的用户ID
+	for _, blockedID := range blockedUserIDs {
+		r.redis.SAdd(ctx, key, blockedID)
+	}
+
+	// 设置过期时间
+	return r.redis.Expire(ctx, key, UserCacheTTL).Err()
+}
+
+// AddUserBlocking 添加单个屏蔽关系到缓存
+func (r *UserCacheRepository) AddUserBlocking(ctx context.Context, userID, blockedUserID uint) error {
+	key := fmt.Sprintf("user:blocking:%d", userID)
+	err := r.redis.SAdd(ctx, key, blockedUserID).Err()
+	if err != nil {
+		return err
+	}
+	return r.redis.Expire(ctx, key, UserCacheTTL).Err()
+}
+
+// RemoveUserBlocking 从缓存中移除屏蔽关系
+func (r *UserCacheRepository) RemoveUserBlocking(ctx context.Context, userID, blockedUserID uint) error {
+	key := fmt.Sprintf("user:blocking:%d", userID)
+	return r.redis.SRem(ctx, key, blockedUserID).Err()
+}
+
 // 批量删除缓存的辅助方法
 
 // InvalidateUserCache 使用户相关的所有缓存失效

@@ -180,12 +180,19 @@ func (h *UserGRPCHandler) RemoveFriend(ctx context.Context, req *pb.RemoveFriend
 	}, nil
 }
 
-// BlockUser 屏蔽用户 (暂未实现)
+// BlockUser 屏蔽用户
 func (h *UserGRPCHandler) BlockUser(ctx context.Context, req *pb.BlockUserRequest) (*pb.BlockUserResponse, error) {
-	// TODO: 实现用户屏蔽功能
+	err := h.userService.BlockUser(uint(req.UserId), uint(req.BlockedId), req.Reason)
+	if err != nil {
+		return &pb.BlockUserResponse{
+			Success: false,
+			Message: err.Error(),
+		}, nil
+	}
+
 	return &pb.BlockUserResponse{
-		Success: false,
-		Message: "block user feature not implemented yet",
+		Success: true,
+		Message: "user blocked successfully",
 	}, nil
 }
 

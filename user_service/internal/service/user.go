@@ -196,15 +196,47 @@ func (s *UserService) UpdateUserStatus(userID uint, status string) error {
 	if err != nil {
 		return fmt.Errorf("failed to update user status: %w", err)
 	}
+
+	// 更新缓存
+	if s.cacheRepo != nil {
+		go func() {
+			ctx := context.Background()
+			isOnline := status == "online"
+			s.cacheRepo.SetUserOnlineStatus(ctx, userID, isOnline, now)
+		}()
+	}
+
 	return nil
 }
 
 // GetUserSettings 获取用户设置
 func (s *UserService) GetUserSettings(userID uint) (*model.UserSetting, error) {
+	ctx := context.Background()
+
+	// 首先尝试从缓存获取
+	if s.cacheRepo != nil {
+		settings, err := s.cacheRepo.GetUserSettings(ctx, userID)
+		if err != nil {
+			// 缓存错误，继续从数据库获取
+		} else if settings != nil {
+			// 缓存命中
+			return settings, nil
+		}
+	}
+
+	// 从数据库获取
 	settings, err := s.userRepo.GetUserSettings(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user settings: %w", err)
 	}
+
+	// 异步更新缓存
+	if s.cacheRepo != nil {
+		go func() {
+			s.cacheRepo.SetUserSettings(ctx, userID, settings)
+		}()
+	}
+
 	return settings, nil
 }
 
@@ -240,6 +272,14 @@ func (s *UserService) UpdateUserSettings(userID uint, req *UpdateSettingsRequest
 	err = s.userRepo.UpdateUserSettings(settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user settings: %w", err)
+	}
+
+	// 使缓存失效
+	if s.cacheRepo != nil {
+		go func() {
+			ctx := context.Background()
+			s.cacheRepo.InvalidateUserSettings(ctx, userID)
+		}()
 	}
 
 	return settings, nil
@@ -297,11 +337,13 @@ func (s *UserService) BlockUser(userID, blockedID uint, reason string) error {
 		return fmt.Errorf("failed to block user: %w", err)
 	}
 
-	// 清除相关缓存
+	// 清除相关缓存并更新屏蔽关系缓存
 	if s.cacheRepo != nil {
 		ctx := context.Background()
 		go func() {
 			s.cacheRepo.DeleteBlockedUsers(ctx, userID)
+			// 更新屏蔽关系缓存
+			s.cacheRepo.AddUserBlocking(ctx, userID, blockedID)
 		}()
 	}
 
@@ -321,11 +363,13 @@ func (s *UserService) UnblockUser(userID, blockedID uint) error {
 		return fmt.Errorf("failed to unblock user: %w", err)
 	}
 
-	// 清除相关缓存
+	// 清除相关缓存并移除屏蔽关系缓存
 	if s.cacheRepo != nil {
 		ctx := context.Background()
 		go func() {
 			s.cacheRepo.DeleteBlockedUsers(ctx, userID)
+			// 从屏蔽关系缓存中移除
+			s.cacheRepo.RemoveUserBlocking(ctx, userID, blockedID)
 		}()
 	}
 
@@ -362,7 +406,33 @@ func (s *UserService) IsUserBlocked(userID, targetUserID uint) (bool, error) {
 		return false, fmt.Errorf("invalid user ID")
 	}
 
-	return s.userRepo.IsUserBlocked(userID, targetUserID)
+	ctx := context.Background()
+
+	// 首先尝试从缓存获取
+	if s.cacheRepo != nil {
+		blocked, cacheHit, err := s.cacheRepo.CheckUserBlocked(ctx, userID, targetUserID)
+		if err != nil {
+			// 缓存错误，继续从数据库查询
+		} else if cacheHit {
+			// 缓存命中，直接返回结果
+			return blocked, nil
+		}
+	}
+
+	// 从数据库查询
+	blocked, err := s.userRepo.IsUserBlocked(userID, targetUserID)
+	if err != nil {
+		return false, err
+	}
+
+	// 如果从数据库查询到结果，异步更新缓存
+	if s.cacheRepo != nil && blocked {
+		go func() {
+			s.cacheRepo.AddUserBlocking(ctx, userID, targetUserID)
+		}()
+	}
+
+	return blocked, nil
 }
 
 // IsBlockedBy 检查是否被某用户屏蔽

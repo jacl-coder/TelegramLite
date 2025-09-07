@@ -84,12 +84,12 @@ func main() {
 	authMiddleware := middleware.NewAuthMiddleware(authClient)
 
 	// 自动迁移数据库
-	if err := repository.AutoMigrate(); err != nil {
-		appLogger.Error("Failed to migrate database", logger.Fields{
-			"error": err.Error(),
-		})
-		log.Fatalf("Failed to migrate database: %v", err)
-	}
+	// if err := repository.AutoMigrate(); err != nil {
+	// 	appLogger.Error("Failed to migrate database", logger.Fields{
+	// 		"error": err.Error(),
+	// 	})
+	// 	log.Fatalf("Failed to migrate database: %v", err)
+	// }
 
 	// 初始化服务
 	userService := service.NewUserService()
