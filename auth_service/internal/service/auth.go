@@ -225,6 +225,11 @@ func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
 
 // RefreshToken 刷新token
 func (s *AuthService) RefreshToken(refreshToken string) (*pkg.TokenResponse, error) {
+	// 输入验证
+	if refreshToken == "" {
+		return nil, errors.New("刷新token不能为空")
+	}
+
 	// 验证刷新token
 	claims, err := s.jwtManager.VerifyRefreshToken(refreshToken)
 	if err != nil {
@@ -299,4 +304,14 @@ func (s *AuthService) GetUserByToken(tokenString string) (*model.User, error) {
 	// 隐藏密码
 	user.PasswordHash = ""
 	return user, nil
+}
+
+// GetUserInfo 获取用户信息 (为HTTP API提供)
+func (s *AuthService) GetUserInfo(tokenString string) (*model.User, error) {
+	// 输入验证
+	if tokenString == "" {
+		return nil, errors.New("token不能为空")
+	}
+
+	return s.GetUserByToken(tokenString)
 }

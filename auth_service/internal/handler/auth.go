@@ -138,6 +138,40 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	})
 }
 
+// GetUserInfo 获取用户信息
+func (h *AuthHandler) GetUserInfo(c *gin.Context) {
+	// 从Header获取Access Token
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, Response{
+			Code:    401,
+			Message: "access token is required",
+		})
+		return
+	}
+
+	// 去掉 Bearer 前缀
+	if len(token) > 7 && token[:7] == "Bearer " {
+		token = token[7:]
+	}
+
+	// 验证Token并获取用户信息
+	userInfo, err := h.authService.GetUserInfo(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, Response{
+			Code:    401,
+			Message: "invalid or expired token",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		Code:    0,
+		Message: "user info retrieved successfully",
+		Data:    userInfo,
+	})
+}
+
 // Health 健康检查
 func (h *AuthHandler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{

@@ -1397,6 +1397,242 @@ func (x *BlockUserResponse) GetMessage() string {
 	return ""
 }
 
+// 取消屏蔽用户请求
+type UnblockUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	BlockedId     uint32                 `protobuf:"varint,2,opt,name=blocked_id,json=blockedId,proto3" json:"blocked_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnblockUserRequest) Reset() {
+	*x = UnblockUserRequest{}
+	mi := &file_user_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnblockUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnblockUserRequest) ProtoMessage() {}
+
+func (x *UnblockUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnblockUserRequest.ProtoReflect.Descriptor instead.
+func (*UnblockUserRequest) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *UnblockUserRequest) GetUserId() uint32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *UnblockUserRequest) GetBlockedId() uint32 {
+	if x != nil {
+		return x.BlockedId
+	}
+	return 0
+}
+
+// 取消屏蔽用户响应
+type UnblockUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnblockUserResponse) Reset() {
+	*x = UnblockUserResponse{}
+	mi := &file_user_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnblockUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnblockUserResponse) ProtoMessage() {}
+
+func (x *UnblockUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnblockUserResponse.ProtoReflect.Descriptor instead.
+func (*UnblockUserResponse) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *UnblockUserResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UnblockUserResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// 获取屏蔽列表请求
+type GetBlockedUsersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        uint32                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Page          uint32                 `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      uint32                 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBlockedUsersRequest) Reset() {
+	*x = GetBlockedUsersRequest{}
+	mi := &file_user_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBlockedUsersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBlockedUsersRequest) ProtoMessage() {}
+
+func (x *GetBlockedUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBlockedUsersRequest.ProtoReflect.Descriptor instead.
+func (*GetBlockedUsersRequest) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetBlockedUsersRequest) GetUserId() uint32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetBlockedUsersRequest) GetPage() uint32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetBlockedUsersRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+// 获取屏蔽列表响应
+type GetBlockedUsersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BlockedUsers  []*UserProfile         `protobuf:"bytes,1,rep,name=blocked_users,json=blockedUsers,proto3" json:"blocked_users,omitempty"`
+	Total         uint32                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	Page          uint32                 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      uint32                 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBlockedUsersResponse) Reset() {
+	*x = GetBlockedUsersResponse{}
+	mi := &file_user_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBlockedUsersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBlockedUsersResponse) ProtoMessage() {}
+
+func (x *GetBlockedUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBlockedUsersResponse.ProtoReflect.Descriptor instead.
+func (*GetBlockedUsersResponse) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetBlockedUsersResponse) GetBlockedUsers() []*UserProfile {
+	if x != nil {
+		return x.BlockedUsers
+	}
+	return nil
+}
+
+func (x *GetBlockedUsersResponse) GetTotal() uint32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *GetBlockedUsersResponse) GetPage() uint32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetBlockedUsersResponse) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 // 获取用户设置请求
 type GetUserSettingsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1407,7 +1643,7 @@ type GetUserSettingsRequest struct {
 
 func (x *GetUserSettingsRequest) Reset() {
 	*x = GetUserSettingsRequest{}
-	mi := &file_user_proto_msgTypes[19]
+	mi := &file_user_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1419,7 +1655,7 @@ func (x *GetUserSettingsRequest) String() string {
 func (*GetUserSettingsRequest) ProtoMessage() {}
 
 func (x *GetUserSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[19]
+	mi := &file_user_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1432,7 +1668,7 @@ func (x *GetUserSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserSettingsRequest.ProtoReflect.Descriptor instead.
 func (*GetUserSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{19}
+	return file_user_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetUserSettingsRequest) GetUserId() uint32 {
@@ -1452,7 +1688,7 @@ type GetUserSettingsResponse struct {
 
 func (x *GetUserSettingsResponse) Reset() {
 	*x = GetUserSettingsResponse{}
-	mi := &file_user_proto_msgTypes[20]
+	mi := &file_user_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1464,7 +1700,7 @@ func (x *GetUserSettingsResponse) String() string {
 func (*GetUserSettingsResponse) ProtoMessage() {}
 
 func (x *GetUserSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[20]
+	mi := &file_user_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1477,7 +1713,7 @@ func (x *GetUserSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserSettingsResponse.ProtoReflect.Descriptor instead.
 func (*GetUserSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{20}
+	return file_user_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetUserSettingsResponse) GetSettings() *UserSettings {
@@ -1506,7 +1742,7 @@ type UpdateUserSettingsRequest struct {
 
 func (x *UpdateUserSettingsRequest) Reset() {
 	*x = UpdateUserSettingsRequest{}
-	mi := &file_user_proto_msgTypes[21]
+	mi := &file_user_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1518,7 +1754,7 @@ func (x *UpdateUserSettingsRequest) String() string {
 func (*UpdateUserSettingsRequest) ProtoMessage() {}
 
 func (x *UpdateUserSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[21]
+	mi := &file_user_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1531,7 +1767,7 @@ func (x *UpdateUserSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserSettingsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{21}
+	return file_user_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *UpdateUserSettingsRequest) GetUserId() uint32 {
@@ -1614,7 +1850,7 @@ type UpdateUserSettingsResponse struct {
 
 func (x *UpdateUserSettingsResponse) Reset() {
 	*x = UpdateUserSettingsResponse{}
-	mi := &file_user_proto_msgTypes[22]
+	mi := &file_user_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1626,7 +1862,7 @@ func (x *UpdateUserSettingsResponse) String() string {
 func (*UpdateUserSettingsResponse) ProtoMessage() {}
 
 func (x *UpdateUserSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[22]
+	mi := &file_user_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1639,7 +1875,7 @@ func (x *UpdateUserSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserSettingsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{22}
+	return file_user_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateUserSettingsResponse) GetSettings() *UserSettings {
@@ -1660,7 +1896,7 @@ type UpdateOnlineStatusRequest struct {
 
 func (x *UpdateOnlineStatusRequest) Reset() {
 	*x = UpdateOnlineStatusRequest{}
-	mi := &file_user_proto_msgTypes[23]
+	mi := &file_user_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1672,7 +1908,7 @@ func (x *UpdateOnlineStatusRequest) String() string {
 func (*UpdateOnlineStatusRequest) ProtoMessage() {}
 
 func (x *UpdateOnlineStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[23]
+	mi := &file_user_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1685,7 +1921,7 @@ func (x *UpdateOnlineStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOnlineStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOnlineStatusRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{23}
+	return file_user_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateOnlineStatusRequest) GetUserId() uint32 {
@@ -1712,7 +1948,7 @@ type UpdateOnlineStatusResponse struct {
 
 func (x *UpdateOnlineStatusResponse) Reset() {
 	*x = UpdateOnlineStatusResponse{}
-	mi := &file_user_proto_msgTypes[24]
+	mi := &file_user_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1724,7 +1960,7 @@ func (x *UpdateOnlineStatusResponse) String() string {
 func (*UpdateOnlineStatusResponse) ProtoMessage() {}
 
 func (x *UpdateOnlineStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[24]
+	mi := &file_user_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1737,7 +1973,7 @@ func (x *UpdateOnlineStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOnlineStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOnlineStatusResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{24}
+	return file_user_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *UpdateOnlineStatusResponse) GetSuccess() bool {
@@ -1869,7 +2105,23 @@ const file_user_proto_rawDesc = "" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\"G\n" +
 	"\x11BlockUserResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"1\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"L\n" +
+	"\x12UnblockUserRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x1d\n" +
+	"\n" +
+	"blocked_id\x18\x02 \x01(\rR\tblockedId\"I\n" +
+	"\x13UnblockUserResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"b\n" +
+	"\x16GetBlockedUsersRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\rR\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\rR\bpageSize\"\x98\x01\n" +
+	"\x17GetBlockedUsersResponse\x126\n" +
+	"\rblocked_users\x18\x01 \x03(\v2\x11.user.UserProfileR\fblockedUsers\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\rR\x05total\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\rR\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\rR\bpageSize\"1\n" +
 	"\x16GetUserSettingsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\"I\n" +
 	"\x17GetUserSettingsResponse\x12.\n" +
@@ -1892,7 +2144,7 @@ const file_user_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\rR\x06userId\x12\x1b\n" +
 	"\tis_online\x18\x02 \x01(\bR\bisOnline\"6\n" +
 	"\x1aUpdateOnlineStatusResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xfa\x06\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\x8e\b\n" +
 	"\vUserService\x12K\n" +
 	"\x0eGetUserProfile\x12\x1b.user.GetUserProfileRequest\x1a\x1c.user.GetUserProfileResponse\x12T\n" +
 	"\x11UpdateUserProfile\x12\x1e.user.UpdateUserProfileRequest\x1a\x1f.user.UpdateUserProfileResponse\x12B\n" +
@@ -1901,7 +2153,9 @@ const file_user_proto_rawDesc = "" +
 	"\x13HandleFriendRequest\x12 .user.HandleFriendRequestRequest\x1a!.user.HandleFriendRequestResponse\x12K\n" +
 	"\x0eGetFriendsList\x12\x1b.user.GetFriendsListRequest\x1a\x1c.user.GetFriendsListResponse\x12E\n" +
 	"\fRemoveFriend\x12\x19.user.RemoveFriendRequest\x1a\x1a.user.RemoveFriendResponse\x12<\n" +
-	"\tBlockUser\x12\x16.user.BlockUserRequest\x1a\x17.user.BlockUserResponse\x12N\n" +
+	"\tBlockUser\x12\x16.user.BlockUserRequest\x1a\x17.user.BlockUserResponse\x12B\n" +
+	"\vUnblockUser\x12\x18.user.UnblockUserRequest\x1a\x19.user.UnblockUserResponse\x12N\n" +
+	"\x0fGetBlockedUsers\x12\x1c.user.GetBlockedUsersRequest\x1a\x1d.user.GetBlockedUsersResponse\x12N\n" +
 	"\x0fGetUserSettings\x12\x1c.user.GetUserSettingsRequest\x1a\x1d.user.GetUserSettingsResponse\x12W\n" +
 	"\x12UpdateUserSettings\x12\x1f.user.UpdateUserSettingsRequest\x1a .user.UpdateUserSettingsResponse\x12W\n" +
 	"\x12UpdateOnlineStatus\x12\x1f.user.UpdateOnlineStatusRequest\x1a .user.UpdateOnlineStatusResponseB;Z9github.com/jacl-coder/telegramlite/user_service/api/protob\x06proto3"
@@ -1918,7 +2172,7 @@ func file_user_proto_rawDescGZIP() []byte {
 	return file_user_proto_rawDescData
 }
 
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_user_proto_goTypes = []any{
 	(*UserProfile)(nil),                 // 0: user.UserProfile
 	(*Friendship)(nil),                  // 1: user.Friendship
@@ -1939,58 +2193,67 @@ var file_user_proto_goTypes = []any{
 	(*RemoveFriendResponse)(nil),        // 16: user.RemoveFriendResponse
 	(*BlockUserRequest)(nil),            // 17: user.BlockUserRequest
 	(*BlockUserResponse)(nil),           // 18: user.BlockUserResponse
-	(*GetUserSettingsRequest)(nil),      // 19: user.GetUserSettingsRequest
-	(*GetUserSettingsResponse)(nil),     // 20: user.GetUserSettingsResponse
-	(*UpdateUserSettingsRequest)(nil),   // 21: user.UpdateUserSettingsRequest
-	(*UpdateUserSettingsResponse)(nil),  // 22: user.UpdateUserSettingsResponse
-	(*UpdateOnlineStatusRequest)(nil),   // 23: user.UpdateOnlineStatusRequest
-	(*UpdateOnlineStatusResponse)(nil),  // 24: user.UpdateOnlineStatusResponse
-	(*timestamppb.Timestamp)(nil),       // 25: google.protobuf.Timestamp
+	(*UnblockUserRequest)(nil),          // 19: user.UnblockUserRequest
+	(*UnblockUserResponse)(nil),         // 20: user.UnblockUserResponse
+	(*GetBlockedUsersRequest)(nil),      // 21: user.GetBlockedUsersRequest
+	(*GetBlockedUsersResponse)(nil),     // 22: user.GetBlockedUsersResponse
+	(*GetUserSettingsRequest)(nil),      // 23: user.GetUserSettingsRequest
+	(*GetUserSettingsResponse)(nil),     // 24: user.GetUserSettingsResponse
+	(*UpdateUserSettingsRequest)(nil),   // 25: user.UpdateUserSettingsRequest
+	(*UpdateUserSettingsResponse)(nil),  // 26: user.UpdateUserSettingsResponse
+	(*UpdateOnlineStatusRequest)(nil),   // 27: user.UpdateOnlineStatusRequest
+	(*UpdateOnlineStatusResponse)(nil),  // 28: user.UpdateOnlineStatusResponse
+	(*timestamppb.Timestamp)(nil),       // 29: google.protobuf.Timestamp
 }
 var file_user_proto_depIdxs = []int32{
-	25, // 0: user.UserProfile.birthday:type_name -> google.protobuf.Timestamp
-	25, // 1: user.UserProfile.last_seen_at:type_name -> google.protobuf.Timestamp
-	25, // 2: user.UserProfile.created_at:type_name -> google.protobuf.Timestamp
-	25, // 3: user.UserProfile.updated_at:type_name -> google.protobuf.Timestamp
-	25, // 4: user.Friendship.created_at:type_name -> google.protobuf.Timestamp
-	25, // 5: user.Friendship.updated_at:type_name -> google.protobuf.Timestamp
+	29, // 0: user.UserProfile.birthday:type_name -> google.protobuf.Timestamp
+	29, // 1: user.UserProfile.last_seen_at:type_name -> google.protobuf.Timestamp
+	29, // 2: user.UserProfile.created_at:type_name -> google.protobuf.Timestamp
+	29, // 3: user.UserProfile.updated_at:type_name -> google.protobuf.Timestamp
+	29, // 4: user.Friendship.created_at:type_name -> google.protobuf.Timestamp
+	29, // 5: user.Friendship.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 6: user.Friendship.friend_profile:type_name -> user.UserProfile
-	25, // 7: user.UserSettings.created_at:type_name -> google.protobuf.Timestamp
-	25, // 8: user.UserSettings.updated_at:type_name -> google.protobuf.Timestamp
+	29, // 7: user.UserSettings.created_at:type_name -> google.protobuf.Timestamp
+	29, // 8: user.UserSettings.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 9: user.GetUserProfileResponse.profile:type_name -> user.UserProfile
-	25, // 10: user.UpdateUserProfileRequest.birthday:type_name -> google.protobuf.Timestamp
+	29, // 10: user.UpdateUserProfileRequest.birthday:type_name -> google.protobuf.Timestamp
 	0,  // 11: user.UpdateUserProfileResponse.profile:type_name -> user.UserProfile
 	0,  // 12: user.SearchUsersResponse.users:type_name -> user.UserProfile
 	1,  // 13: user.GetFriendsListResponse.friendships:type_name -> user.Friendship
-	2,  // 14: user.GetUserSettingsResponse.settings:type_name -> user.UserSettings
-	2,  // 15: user.UpdateUserSettingsResponse.settings:type_name -> user.UserSettings
-	3,  // 16: user.UserService.GetUserProfile:input_type -> user.GetUserProfileRequest
-	5,  // 17: user.UserService.UpdateUserProfile:input_type -> user.UpdateUserProfileRequest
-	7,  // 18: user.UserService.SearchUsers:input_type -> user.SearchUsersRequest
-	9,  // 19: user.UserService.SendFriendRequest:input_type -> user.SendFriendRequestRequest
-	11, // 20: user.UserService.HandleFriendRequest:input_type -> user.HandleFriendRequestRequest
-	13, // 21: user.UserService.GetFriendsList:input_type -> user.GetFriendsListRequest
-	15, // 22: user.UserService.RemoveFriend:input_type -> user.RemoveFriendRequest
-	17, // 23: user.UserService.BlockUser:input_type -> user.BlockUserRequest
-	19, // 24: user.UserService.GetUserSettings:input_type -> user.GetUserSettingsRequest
-	21, // 25: user.UserService.UpdateUserSettings:input_type -> user.UpdateUserSettingsRequest
-	23, // 26: user.UserService.UpdateOnlineStatus:input_type -> user.UpdateOnlineStatusRequest
-	4,  // 27: user.UserService.GetUserProfile:output_type -> user.GetUserProfileResponse
-	6,  // 28: user.UserService.UpdateUserProfile:output_type -> user.UpdateUserProfileResponse
-	8,  // 29: user.UserService.SearchUsers:output_type -> user.SearchUsersResponse
-	10, // 30: user.UserService.SendFriendRequest:output_type -> user.SendFriendRequestResponse
-	12, // 31: user.UserService.HandleFriendRequest:output_type -> user.HandleFriendRequestResponse
-	14, // 32: user.UserService.GetFriendsList:output_type -> user.GetFriendsListResponse
-	16, // 33: user.UserService.RemoveFriend:output_type -> user.RemoveFriendResponse
-	18, // 34: user.UserService.BlockUser:output_type -> user.BlockUserResponse
-	20, // 35: user.UserService.GetUserSettings:output_type -> user.GetUserSettingsResponse
-	22, // 36: user.UserService.UpdateUserSettings:output_type -> user.UpdateUserSettingsResponse
-	24, // 37: user.UserService.UpdateOnlineStatus:output_type -> user.UpdateOnlineStatusResponse
-	27, // [27:38] is the sub-list for method output_type
-	16, // [16:27] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	0,  // 14: user.GetBlockedUsersResponse.blocked_users:type_name -> user.UserProfile
+	2,  // 15: user.GetUserSettingsResponse.settings:type_name -> user.UserSettings
+	2,  // 16: user.UpdateUserSettingsResponse.settings:type_name -> user.UserSettings
+	3,  // 17: user.UserService.GetUserProfile:input_type -> user.GetUserProfileRequest
+	5,  // 18: user.UserService.UpdateUserProfile:input_type -> user.UpdateUserProfileRequest
+	7,  // 19: user.UserService.SearchUsers:input_type -> user.SearchUsersRequest
+	9,  // 20: user.UserService.SendFriendRequest:input_type -> user.SendFriendRequestRequest
+	11, // 21: user.UserService.HandleFriendRequest:input_type -> user.HandleFriendRequestRequest
+	13, // 22: user.UserService.GetFriendsList:input_type -> user.GetFriendsListRequest
+	15, // 23: user.UserService.RemoveFriend:input_type -> user.RemoveFriendRequest
+	17, // 24: user.UserService.BlockUser:input_type -> user.BlockUserRequest
+	19, // 25: user.UserService.UnblockUser:input_type -> user.UnblockUserRequest
+	21, // 26: user.UserService.GetBlockedUsers:input_type -> user.GetBlockedUsersRequest
+	23, // 27: user.UserService.GetUserSettings:input_type -> user.GetUserSettingsRequest
+	25, // 28: user.UserService.UpdateUserSettings:input_type -> user.UpdateUserSettingsRequest
+	27, // 29: user.UserService.UpdateOnlineStatus:input_type -> user.UpdateOnlineStatusRequest
+	4,  // 30: user.UserService.GetUserProfile:output_type -> user.GetUserProfileResponse
+	6,  // 31: user.UserService.UpdateUserProfile:output_type -> user.UpdateUserProfileResponse
+	8,  // 32: user.UserService.SearchUsers:output_type -> user.SearchUsersResponse
+	10, // 33: user.UserService.SendFriendRequest:output_type -> user.SendFriendRequestResponse
+	12, // 34: user.UserService.HandleFriendRequest:output_type -> user.HandleFriendRequestResponse
+	14, // 35: user.UserService.GetFriendsList:output_type -> user.GetFriendsListResponse
+	16, // 36: user.UserService.RemoveFriend:output_type -> user.RemoveFriendResponse
+	18, // 37: user.UserService.BlockUser:output_type -> user.BlockUserResponse
+	20, // 38: user.UserService.UnblockUser:output_type -> user.UnblockUserResponse
+	22, // 39: user.UserService.GetBlockedUsers:output_type -> user.GetBlockedUsersResponse
+	24, // 40: user.UserService.GetUserSettings:output_type -> user.GetUserSettingsResponse
+	26, // 41: user.UserService.UpdateUserSettings:output_type -> user.UpdateUserSettingsResponse
+	28, // 42: user.UserService.UpdateOnlineStatus:output_type -> user.UpdateOnlineStatusResponse
+	30, // [30:43] is the sub-list for method output_type
+	17, // [17:30] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_user_proto_init() }
@@ -2004,7 +2267,7 @@ func file_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   25,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -241,3 +241,45 @@ func (h *UserGRPCHandler) UpdateOnlineStatus(ctx context.Context, req *pb.Update
 		Success: true,
 	}, nil
 }
+
+// UnblockUser 取消屏蔽用户
+func (h *UserGRPCHandler) UnblockUser(ctx context.Context, req *pb.UnblockUserRequest) (*pb.UnblockUserResponse, error) {
+	err := h.userService.UnblockUser(uint(req.UserId), uint(req.BlockedId))
+	if err != nil {
+		return &pb.UnblockUserResponse{
+			Success: false,
+			Message: err.Error(),
+		}, nil
+	}
+
+	return &pb.UnblockUserResponse{
+		Success: true,
+		Message: "user unblocked successfully",
+	}, nil
+}
+
+// GetBlockedUsers 获取屏蔽用户列表
+func (h *UserGRPCHandler) GetBlockedUsers(ctx context.Context, req *pb.GetBlockedUsersRequest) (*pb.GetBlockedUsersResponse, error) {
+	offset := int((req.Page - 1) * req.PageSize)
+	limit := int(req.PageSize)
+	if limit <= 0 {
+		limit = 10 // 默认每页10条
+	}
+
+	blockedUsers, total, err := h.userService.GetBlockedUsers(uint(req.UserId), limit, offset)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get blocked users: %v", err)
+	}
+
+	protoUsers := make([]*pb.UserProfile, len(blockedUsers))
+	for i, user := range blockedUsers {
+		protoUsers[i] = convertUserProfileToProto(user)
+	}
+
+	return &pb.GetBlockedUsersResponse{
+		BlockedUsers: protoUsers,
+		Total:        uint32(total),
+		Page:         req.Page,
+		PageSize:     req.PageSize,
+	}, nil
+}

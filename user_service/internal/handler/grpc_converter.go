@@ -43,49 +43,6 @@ func convertUserProfileToProto(profile *model.UserProfile) *proto.UserProfile {
 	return protoProfile
 }
 
-// convertProtoToUserProfile 将Proto消息转换为内部模型
-func convertProtoToUserProfile(protoProfile *proto.UserProfile) *model.UserProfile {
-	if protoProfile == nil {
-		return nil
-	}
-
-	profile := &model.UserProfile{
-		ID:        uint(protoProfile.Id),
-		UserID:    uint(protoProfile.UserId),
-		Nickname:  protoProfile.Nickname,
-		FirstName: protoProfile.FirstName,
-		LastName:  protoProfile.LastName,
-		Bio:       protoProfile.Bio,
-		Avatar:    protoProfile.Avatar,
-		Status:    protoProfile.Status,
-		Gender:    protoProfile.Gender,
-		Language:  protoProfile.Language,
-		Timezone:  protoProfile.Timezone,
-		IsOnline:  protoProfile.IsOnline,
-	}
-
-	// 处理时间字段
-	if protoProfile.CreatedAt != nil {
-		profile.CreatedAt = protoProfile.CreatedAt.AsTime()
-	}
-
-	if protoProfile.UpdatedAt != nil {
-		profile.UpdatedAt = protoProfile.UpdatedAt.AsTime()
-	}
-
-	if protoProfile.Birthday != nil {
-		birthday := protoProfile.Birthday.AsTime()
-		profile.Birthday = &birthday
-	}
-
-	if protoProfile.LastSeenAt != nil {
-		lastSeen := protoProfile.LastSeenAt.AsTime()
-		profile.LastSeenAt = &lastSeen
-	}
-
-	return profile
-}
-
 // convertUserSettingsToProto 将内部设置模型转换为Proto消息
 func convertUserSettingsToProto(settings *model.UserSetting) *proto.UserSettings {
 	if settings == nil {
@@ -106,51 +63,6 @@ func convertUserSettingsToProto(settings *model.UserSetting) *proto.UserSettings
 		PushEnabled:      true, // 默认值
 		CreatedAt:        timestamppb.New(settings.CreatedAt),
 		UpdatedAt:        timestamppb.New(settings.UpdatedAt),
-	}
-}
-
-// convertProtoToUserSettings 将Proto消息转换为内部设置模型
-func convertProtoToUserSettings(protoSettings *proto.UserSettings) *model.UserSetting {
-	if protoSettings == nil {
-		return nil
-	}
-
-	settings := &model.UserSetting{
-		ID:                   uint(protoSettings.Id),
-		UserID:               uint(protoSettings.UserId),
-		AllowFriendRequests:  protoSettings.AllowFriendReq,
-		AllowBeingSearched:   protoSettings.AllowSearch,
-		ShowOnlineStatus:     protoSettings.ShowOnlineStatus,
-		ShowLastSeen:         protoSettings.ShowLastSeen,
-		MessageNotifications: protoSettings.MessagePreview,
-		FriendNotifications:  protoSettings.SoundEnabled,
-	}
-
-	// 处理时间字段
-	if protoSettings.CreatedAt != nil {
-		settings.CreatedAt = protoSettings.CreatedAt.AsTime()
-	}
-
-	if protoSettings.UpdatedAt != nil {
-		settings.UpdatedAt = protoSettings.UpdatedAt.AsTime()
-	}
-
-	return settings
-}
-
-// convertFriendRequestToProto 将好友请求转换为Proto消息
-func convertFriendRequestToProto(request *model.FriendRequest) *proto.Friendship {
-	if request == nil {
-		return nil
-	}
-
-	return &proto.Friendship{
-		Id:        uint32(request.ID),
-		UserId:    uint32(request.FromID),
-		FriendId:  uint32(request.ToID),
-		Status:    request.Status,
-		CreatedAt: timestamppb.New(request.CreatedAt),
-		UpdatedAt: timestamppb.New(request.UpdatedAt),
 	}
 }
 

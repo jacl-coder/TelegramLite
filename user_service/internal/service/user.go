@@ -35,6 +35,11 @@ func NewUserService() *UserService {
 
 // GetUserProfile 获取用户资料
 func (s *UserService) GetUserProfile(userID uint) (*model.UserProfile, error) {
+	// 输入验证
+	if userID == 0 {
+		return nil, errors.New("user ID cannot be zero")
+	}
+
 	ctx := context.Background()
 
 	// 先尝试从缓存获取
@@ -68,6 +73,14 @@ func (s *UserService) GetUserProfile(userID uint) (*model.UserProfile, error) {
 
 // UpdateUserProfile 更新用户资料
 func (s *UserService) UpdateUserProfile(userID uint, req *UpdateProfileRequest) (*model.UserProfile, error) {
+	// 输入验证
+	if userID == 0 {
+		return nil, errors.New("user ID cannot be zero")
+	}
+	if req == nil {
+		return nil, errors.New("update request cannot be nil")
+	}
+
 	// 获取现有资料
 	profile, err := s.userRepo.GetUserProfileByID(userID)
 	if err != nil {

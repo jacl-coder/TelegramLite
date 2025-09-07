@@ -60,12 +60,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	// 自动迁移数据表 (注释掉，生产环境慎用)
-	// appLogger.Info("Running database migrations...")
-	// if err := repository.AutoMigrate(); err != nil {
-	// 	appLogger.Error("Failed to migrate database", logger.Fields{"error": err.Error()})
-	// 	os.Exit(1)
-	// }
+	// 自动迁移数据表
+	appLogger.Info("Running database migrations...")
+	if err := repository.AutoMigrate(); err != nil {
+		appLogger.Error("Failed to migrate database", logger.Fields{"error": err.Error()})
+		os.Exit(1)
+	}
 
 	// 初始化 Redis 连接
 	appLogger.Info("Initializing Redis connection...")
@@ -252,6 +252,7 @@ func setupRouter(authHandler *handler.AuthHandler, mode string, appLogger logger
 			auth.POST("/login", authHandler.Login)
 			auth.POST("/refresh", authHandler.RefreshToken)
 			auth.POST("/logout", authHandler.Logout)
+			auth.GET("/user", authHandler.GetUserInfo) // 获取当前用户信息
 		}
 
 		// 健康检查

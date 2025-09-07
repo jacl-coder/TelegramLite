@@ -166,6 +166,33 @@ message BlockUserResponse {
   string message = 2;
 }
 
+// 取消屏蔽用户请求
+message UnblockUserRequest {
+  uint32 user_id = 1;
+  uint32 blocked_id = 2;
+}
+
+// 取消屏蔽用户响应
+message UnblockUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 获取屏蔽列表请求
+message GetBlockedUsersRequest {
+  uint32 user_id = 1;
+  uint32 page = 2;
+  uint32 page_size = 3;
+}
+
+// 获取屏蔽列表响应
+message GetBlockedUsersResponse {
+  repeated UserProfile blocked_users = 1;
+  uint32 total = 2;
+  uint32 page = 3;
+  uint32 page_size = 4;
+}
+
 // 获取用户设置请求
 message GetUserSettingsRequest {
   uint32 user_id = 1;
@@ -219,6 +246,8 @@ service UserService {
   rpc GetFriendsList(GetFriendsListRequest) returns (GetFriendsListResponse);
   rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse);
   rpc BlockUser(BlockUserRequest) returns (BlockUserResponse);
+  rpc UnblockUser(UnblockUserRequest) returns (UnblockUserResponse);
+  rpc GetBlockedUsers(GetBlockedUsersRequest) returns (GetBlockedUsersResponse);
   
   // 用户设置
   rpc GetUserSettings(GetUserSettingsRequest) returns (GetUserSettingsResponse);

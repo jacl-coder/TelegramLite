@@ -27,6 +27,8 @@ const (
 	UserService_GetFriendsList_FullMethodName      = "/user.UserService/GetFriendsList"
 	UserService_RemoveFriend_FullMethodName        = "/user.UserService/RemoveFriend"
 	UserService_BlockUser_FullMethodName           = "/user.UserService/BlockUser"
+	UserService_UnblockUser_FullMethodName         = "/user.UserService/UnblockUser"
+	UserService_GetBlockedUsers_FullMethodName     = "/user.UserService/GetBlockedUsers"
 	UserService_GetUserSettings_FullMethodName     = "/user.UserService/GetUserSettings"
 	UserService_UpdateUserSettings_FullMethodName  = "/user.UserService/UpdateUserSettings"
 	UserService_UpdateOnlineStatus_FullMethodName  = "/user.UserService/UpdateOnlineStatus"
@@ -48,6 +50,8 @@ type UserServiceClient interface {
 	GetFriendsList(ctx context.Context, in *GetFriendsListRequest, opts ...grpc.CallOption) (*GetFriendsListResponse, error)
 	RemoveFriend(ctx context.Context, in *RemoveFriendRequest, opts ...grpc.CallOption) (*RemoveFriendResponse, error)
 	BlockUser(ctx context.Context, in *BlockUserRequest, opts ...grpc.CallOption) (*BlockUserResponse, error)
+	UnblockUser(ctx context.Context, in *UnblockUserRequest, opts ...grpc.CallOption) (*UnblockUserResponse, error)
+	GetBlockedUsers(ctx context.Context, in *GetBlockedUsersRequest, opts ...grpc.CallOption) (*GetBlockedUsersResponse, error)
 	// 用户设置
 	GetUserSettings(ctx context.Context, in *GetUserSettingsRequest, opts ...grpc.CallOption) (*GetUserSettingsResponse, error)
 	UpdateUserSettings(ctx context.Context, in *UpdateUserSettingsRequest, opts ...grpc.CallOption) (*UpdateUserSettingsResponse, error)
@@ -143,6 +147,26 @@ func (c *userServiceClient) BlockUser(ctx context.Context, in *BlockUserRequest,
 	return out, nil
 }
 
+func (c *userServiceClient) UnblockUser(ctx context.Context, in *UnblockUserRequest, opts ...grpc.CallOption) (*UnblockUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnblockUserResponse)
+	err := c.cc.Invoke(ctx, UserService_UnblockUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetBlockedUsers(ctx context.Context, in *GetBlockedUsersRequest, opts ...grpc.CallOption) (*GetBlockedUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetBlockedUsersResponse)
+	err := c.cc.Invoke(ctx, UserService_GetBlockedUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) GetUserSettings(ctx context.Context, in *GetUserSettingsRequest, opts ...grpc.CallOption) (*GetUserSettingsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUserSettingsResponse)
@@ -189,6 +213,8 @@ type UserServiceServer interface {
 	GetFriendsList(context.Context, *GetFriendsListRequest) (*GetFriendsListResponse, error)
 	RemoveFriend(context.Context, *RemoveFriendRequest) (*RemoveFriendResponse, error)
 	BlockUser(context.Context, *BlockUserRequest) (*BlockUserResponse, error)
+	UnblockUser(context.Context, *UnblockUserRequest) (*UnblockUserResponse, error)
+	GetBlockedUsers(context.Context, *GetBlockedUsersRequest) (*GetBlockedUsersResponse, error)
 	// 用户设置
 	GetUserSettings(context.Context, *GetUserSettingsRequest) (*GetUserSettingsResponse, error)
 	UpdateUserSettings(context.Context, *UpdateUserSettingsRequest) (*UpdateUserSettingsResponse, error)
@@ -227,6 +253,12 @@ func (UnimplementedUserServiceServer) RemoveFriend(context.Context, *RemoveFrien
 }
 func (UnimplementedUserServiceServer) BlockUser(context.Context, *BlockUserRequest) (*BlockUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BlockUser not implemented")
+}
+func (UnimplementedUserServiceServer) UnblockUser(context.Context, *UnblockUserRequest) (*UnblockUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnblockUser not implemented")
+}
+func (UnimplementedUserServiceServer) GetBlockedUsers(context.Context, *GetBlockedUsersRequest) (*GetBlockedUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBlockedUsers not implemented")
 }
 func (UnimplementedUserServiceServer) GetUserSettings(context.Context, *GetUserSettingsRequest) (*GetUserSettingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserSettings not implemented")
@@ -402,6 +434,42 @@ func _UserService_BlockUser_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_UnblockUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnblockUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UnblockUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UnblockUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UnblockUser(ctx, req.(*UnblockUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetBlockedUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBlockedUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetBlockedUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetBlockedUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetBlockedUsers(ctx, req.(*GetBlockedUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_GetUserSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserSettingsRequest)
 	if err := dec(in); err != nil {
@@ -494,6 +562,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BlockUser",
 			Handler:    _UserService_BlockUser_Handler,
+		},
+		{
+			MethodName: "UnblockUser",
+			Handler:    _UserService_UnblockUser_Handler,
+		},
+		{
+			MethodName: "GetBlockedUsers",
+			Handler:    _UserService_GetBlockedUsers_Handler,
 		},
 		{
 			MethodName: "GetUserSettings",

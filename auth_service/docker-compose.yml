@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  auth-service:
+    build: .
+    ports:
+      - "8080:8080" # HTTP端口
+      - "50051:50051" # gRPC端口
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=1024
+      - DB_NAME=telegramlite
+      - REDIS_ADDR=redis:6379
+      - JWT_SECRET=auth_service_secret_key
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./logs:/root/logs
+    networks:
+      - telegramlite
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: telegramlite
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - telegramlite
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - telegramlite
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  telegramlite:
+    driver: bridge
