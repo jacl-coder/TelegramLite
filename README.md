@@ -35,20 +35,20 @@ TelegramLite 是一个用 C++ 实现的分布式即时通讯（IM）系统，支
 ## 目录结构
 
 ```
-common/         # 通用工具与基础库
-config/         # 配置文件
-file_service/   # 文件服务
-msg_service/    # 消息服务
-push_service/   # 推送服务
-user_service/   # 用户服务
-auth_service/   # 认证服务
-gateway/        # 网关服务
-proto/          # 协议定义（Protobuf）
-docker/         # Docker & 部署相关
-scripts/        # 运维与辅助脚本
-docs/           # 设计与说明文档
-third_party/    # 第三方依赖
-README.md       # 项目说明
+common/             # 通用工具与基础库
+config/             # 配置文件
+file_service/       # 文件服务
+msg_service/        # 消息服务
+push_service/       # 推送服务
+user_service/       # 用户服务
+auth_service/       # 认证服务
+gateway_service/    # 网关服务
+proto/              # 协议定义（Protobuf）
+docker/             # Docker & 部署相关
+scripts/            # 运维与辅助脚本
+docs/               # 设计与说明文档
+third_party/        # 第三方依赖
+README.md           # 项目说明
 ```
 
 ## 快速开始
