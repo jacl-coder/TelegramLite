@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -15,18 +16,35 @@ import (
 type UserService struct {
 	userRepo       *repository.UserRepository
 	friendshipRepo *repository.FriendshipRepository
+	cacheRepo      *repository.UserCacheRepository
 }
 
 // NewUserService 创建用户服务
 func NewUserService() *UserService {
+	var cacheRepo *repository.UserCacheRepository
+	if redisClient := repository.GetRedis(); redisClient != nil {
+		cacheRepo = repository.NewUserCacheRepository(redisClient)
+	}
+
 	return &UserService{
 		userRepo:       repository.NewUserRepository(),
 		friendshipRepo: repository.NewFriendshipRepository(),
+		cacheRepo:      cacheRepo,
 	}
 }
 
 // GetUserProfile 获取用户资料
 func (s *UserService) GetUserProfile(userID uint) (*model.UserProfile, error) {
+	ctx := context.Background()
+
+	// 先尝试从缓存获取
+	if s.cacheRepo != nil {
+		if profile, err := s.cacheRepo.GetUserProfile(ctx, userID); err == nil && profile != nil {
+			return profile, nil
+		}
+	}
+
+	// 缓存未命中，从数据库获取
 	profile, err := s.userRepo.GetUserProfileByID(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user profile: %w", err)
@@ -34,6 +52,17 @@ func (s *UserService) GetUserProfile(userID uint) (*model.UserProfile, error) {
 	if profile == nil {
 		return nil, errors.New("user profile not found")
 	}
+
+	// 缓存到Redis
+	if s.cacheRepo != nil {
+		go func() {
+			if err := s.cacheRepo.SetUserProfile(ctx, userID, profile); err != nil {
+				// 记录日志但不影响主流程
+				fmt.Printf("Failed to cache user profile: %v\n", err)
+			}
+		}()
+	}
+
 	return profile, nil
 }
 
@@ -95,6 +124,17 @@ func (s *UserService) UpdateUserProfile(userID uint, req *UpdateProfileRequest) 
 		return nil, fmt.Errorf("failed to save user profile: %w", err)
 	}
 
+	// 更新缓存
+	if s.cacheRepo != nil {
+		ctx := context.Background()
+		go func() {
+			// 删除旧缓存，下次访问时会重新缓存
+			if err := s.cacheRepo.DeleteUserProfile(ctx, userID); err != nil {
+				fmt.Printf("Failed to invalidate user profile cache: %v\n", err)
+			}
+		}()
+	}
+
 	return profile, nil
 }
 
@@ -104,9 +144,32 @@ func (s *UserService) SearchUsers(keyword string, limit int) ([]*model.UserProfi
 		return []*model.UserProfile{}, nil
 	}
 
+	ctx := context.Background()
+
+	// 先尝试从缓存获取
+	if s.cacheRepo != nil {
+		if profiles, err := s.cacheRepo.GetSearchResult(ctx, keyword); err == nil && profiles != nil {
+			// 限制返回数量
+			if len(profiles) > limit {
+				profiles = profiles[:limit]
+			}
+			return profiles, nil
+		}
+	}
+
+	// 缓存未命中，从数据库搜索
 	profiles, err := s.userRepo.SearchUsersByKeyword(keyword, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search users: %w", err)
+	}
+
+	// 缓存搜索结果
+	if s.cacheRepo != nil && len(profiles) > 0 {
+		go func() {
+			if err := s.cacheRepo.SetSearchResult(ctx, keyword, profiles); err != nil {
+				fmt.Printf("Failed to cache search result: %v\n", err)
+			}
+		}()
 	}
 
 	return profiles, nil
@@ -234,6 +297,14 @@ func (s *UserService) BlockUser(userID, blockedID uint, reason string) error {
 		return fmt.Errorf("failed to block user: %w", err)
 	}
 
+	// 清除相关缓存
+	if s.cacheRepo != nil {
+		ctx := context.Background()
+		go func() {
+			s.cacheRepo.DeleteBlockedUsers(ctx, userID)
+		}()
+	}
+
 	return nil
 }
 
@@ -248,6 +319,14 @@ func (s *UserService) UnblockUser(userID, blockedID uint) error {
 	err := s.userRepo.UnblockUser(userID, blockedID)
 	if err != nil {
 		return fmt.Errorf("failed to unblock user: %w", err)
+	}
+
+	// 清除相关缓存
+	if s.cacheRepo != nil {
+		ctx := context.Background()
+		go func() {
+			s.cacheRepo.DeleteBlockedUsers(ctx, userID)
+		}()
 	}
 
 	return nil

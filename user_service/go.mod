@@ -5,11 +5,17 @@ go 1.24.7
 require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/jacl-coder/TelegramLite/common/go/logger v0.0.0-00010101000000-000000000000
+	github.com/redis/go-redis/v9 v9.13.0
 	github.com/spf13/viper v1.20.1
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.8
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.3
+)
+
+require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 )
 
 require (

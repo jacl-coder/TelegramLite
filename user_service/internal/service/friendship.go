@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -12,13 +13,20 @@ import (
 type FriendshipService struct {
 	friendshipRepo *repository.FriendshipRepository
 	userRepo       *repository.UserRepository
+	cacheRepo      *repository.UserCacheRepository
 }
 
 // NewFriendshipService 创建好友关系服务
 func NewFriendshipService() *FriendshipService {
+	var cacheRepo *repository.UserCacheRepository
+	if redisClient := repository.GetRedis(); redisClient != nil {
+		cacheRepo = repository.NewUserCacheRepository(redisClient)
+	}
+
 	return &FriendshipService{
 		friendshipRepo: repository.NewFriendshipRepository(),
 		userRepo:       repository.NewUserRepository(),
+		cacheRepo:      cacheRepo,
 	}
 }
 
@@ -96,6 +104,14 @@ func (s *FriendshipService) AcceptFriendRequest(requestID, userID uint) error {
 		return fmt.Errorf("failed to create friendship: %w", err)
 	}
 
+	// 清除双方的好友列表缓存
+	if s.cacheRepo != nil {
+		ctx := context.Background()
+		go func() {
+			s.cacheRepo.InvalidateFriendshipCache(ctx, request.FromID, request.ToID)
+		}()
+	}
+
 	return nil
 }
 
@@ -125,9 +141,32 @@ func (s *FriendshipService) GetFriendsList(userID uint, page, pageSize int) ([]*
 		pageSize = 20
 	}
 
+	ctx := context.Background()
+
+	// 只缓存第一页的好友列表，因为第一页是最常访问的
+	if page == 1 && s.cacheRepo != nil {
+		if cachedFriends, err := s.cacheRepo.GetFriendsList(ctx, userID); err == nil && cachedFriends != nil {
+			// 限制返回数量
+			if len(cachedFriends) > pageSize {
+				cachedFriends = cachedFriends[:pageSize]
+			}
+			return cachedFriends, nil
+		}
+	}
+
+	// 从数据库获取
 	friendships, err := s.friendshipRepo.GetFriendsList(userID, page, pageSize)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get friends list: %w", err)
+	}
+
+	// 缓存第一页的结果
+	if page == 1 && s.cacheRepo != nil && len(friendships) > 0 {
+		go func() {
+			if err := s.cacheRepo.SetFriendsList(ctx, userID, friendships); err != nil {
+				fmt.Printf("Failed to cache friends list: %v\n", err)
+			}
+		}()
 	}
 
 	return friendships, nil
@@ -148,6 +187,14 @@ func (s *FriendshipService) DeleteFriend(userID, friendID uint) error {
 	err = s.friendshipRepo.DeleteFriendship(userID, friendID)
 	if err != nil {
 		return fmt.Errorf("failed to delete friendship: %w", err)
+	}
+
+	// 清除双方的好友列表缓存
+	if s.cacheRepo != nil {
+		ctx := context.Background()
+		go func() {
+			s.cacheRepo.InvalidateFriendshipCache(ctx, userID, friendID)
+		}()
 	}
 
 	return nil

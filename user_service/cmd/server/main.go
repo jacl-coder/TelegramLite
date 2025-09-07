@@ -62,6 +62,13 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
+	// 初始化 Redis 连接
+	appLogger.Info("Initializing Redis connection...")
+	if err := repository.InitRedis(&cfg.Redis); err != nil {
+		appLogger.Error("Failed to initialize Redis", logger.Fields{"error": err.Error()})
+		log.Fatalf("Failed to initialize Redis: %v", err)
+	}
+
 	// 初始化Auth Service客户端
 	authClient, err := client.NewAuthClient(cfg.Auth.AuthServiceURL)
 	if err != nil {
@@ -128,6 +135,11 @@ func main() {
 		appLogger.Error("Failed to close database", logger.Fields{
 			"error": err.Error(),
 		})
+	}
+
+	// 关闭Redis连接
+	if err := repository.CloseRedis(); err != nil {
+		appLogger.Error("Error closing Redis", logger.Fields{"error": err.Error()})
 	}
 
 	appLogger.Info("User Service stopped")
