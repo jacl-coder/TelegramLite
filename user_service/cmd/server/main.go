@@ -18,8 +18,10 @@ import (
 
 	"github.com/jacl-coder/TelegramLite/common/go/logger"
 	pb "github.com/jacl-coder/telegramlite/user_service/api/proto"
+	"github.com/jacl-coder/telegramlite/user_service/internal/client"
 	"github.com/jacl-coder/telegramlite/user_service/internal/config"
 	"github.com/jacl-coder/telegramlite/user_service/internal/handler"
+	"github.com/jacl-coder/telegramlite/user_service/internal/middleware"
 	"github.com/jacl-coder/telegramlite/user_service/internal/repository"
 	"github.com/jacl-coder/telegramlite/user_service/internal/service"
 )
@@ -60,13 +62,27 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	// // 自动迁移数据库
-	// if err := repository.AutoMigrate(); err != nil {
-	// 	appLogger.Error("Failed to migrate database", logger.Fields{
-	// 		"error": err.Error(),
-	// 	})
-	// 	log.Fatalf("Failed to migrate database: %v", err)
-	// }
+	// 初始化Auth Service客户端
+	authClient, err := client.NewAuthClient(cfg.Auth.AuthServiceURL)
+	if err != nil {
+		appLogger.Error("Failed to connect to auth service", logger.Fields{
+			"error": err.Error(),
+			"url":   cfg.Auth.AuthServiceURL,
+		})
+		log.Fatalf("Failed to connect to auth service: %v", err)
+	}
+	defer authClient.Close()
+
+	// 创建身份验证中间件
+	authMiddleware := middleware.NewAuthMiddleware(authClient)
+
+	// 自动迁移数据库
+	if err := repository.AutoMigrate(); err != nil {
+		appLogger.Error("Failed to migrate database", logger.Fields{
+			"error": err.Error(),
+		})
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
 
 	// 初始化服务
 	userService := service.NewUserService()
@@ -84,7 +100,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		startHTTPServer(ctx, cfg, userHandler, friendshipHandler, appLogger)
+		startHTTPServer(ctx, cfg, userHandler, friendshipHandler, authMiddleware, appLogger)
 	}()
 
 	// 启动 gRPC 服务器
@@ -118,7 +134,7 @@ func main() {
 }
 
 // startHTTPServer 启动 HTTP 服务器
-func startHTTPServer(ctx context.Context, cfg *config.Config, userHandler *handler.UserHandler, friendshipHandler *handler.FriendshipHandler, appLogger logger.Logger) {
+func startHTTPServer(ctx context.Context, cfg *config.Config, userHandler *handler.UserHandler, friendshipHandler *handler.FriendshipHandler, authMiddleware *middleware.AuthMiddleware, appLogger logger.Logger) {
 	// 设置 Gin 模式
 	if cfg.Server.Mode == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -134,19 +150,23 @@ func startHTTPServer(ctx context.Context, cfg *config.Config, userHandler *handl
 	// API 路由组
 	v1 := r.Group("/api/v1")
 
-	// 用户资料路由
+	// 用户资料路由（需要身份验证）
 	users := v1.Group("/users")
+	users.Use(authMiddleware.RequireAuth()) // 应用身份验证中间件
 	{
 		users.GET("/:user_id/profile", userHandler.GetProfile)
 		users.PUT("/:user_id/profile", userHandler.UpdateProfile)
-		users.GET("/search", userHandler.SearchUsers)
 		users.PUT("/:user_id/status", userHandler.UpdateStatus)
 		users.GET("/:user_id/settings", userHandler.GetSettings)
 		users.PUT("/:user_id/settings", userHandler.UpdateSettings)
 	}
 
-	// 好友关系路由
+	// 用户搜索（可选身份验证，用于隐私检查）
+	v1.GET("/users/search", authMiddleware.OptionalAuth(), userHandler.SearchUsers)
+
+	// 好友关系路由（需要身份验证）
 	friends := v1.Group("/users/:user_id/friends")
+	friends.Use(authMiddleware.RequireAuth())
 	{
 		friends.POST("/requests", friendshipHandler.SendFriendRequest)
 		friends.GET("/requests", friendshipHandler.GetPendingRequests)
@@ -155,6 +175,15 @@ func startHTTPServer(ctx context.Context, cfg *config.Config, userHandler *handl
 		friends.GET("", friendshipHandler.GetFriendsList)
 		friends.DELETE("/:friend_id", friendshipHandler.DeleteFriend)
 		friends.GET("/mutual/:other_user_id", friendshipHandler.GetMutualFriends)
+	}
+
+	// 用户屏蔽路由（需要身份验证）
+	blocks := v1.Group("/users/:user_id/blocked")
+	blocks.Use(authMiddleware.RequireAuth())
+	{
+		blocks.POST("/:blocked_id", userHandler.BlockUser)     // 屏蔽用户
+		blocks.DELETE("/:blocked_id", userHandler.UnblockUser) // 取消屏蔽
+		blocks.GET("", userHandler.GetBlockedUsers)            // 获取屏蔽列表
 	}
 
 	// 健康检查

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -70,6 +71,42 @@ func (r *UserRepository) SearchUsersByKeyword(keyword string, limit int) ([]*mod
 		return nil, err
 	}
 	return profiles, nil
+}
+
+// SearchUsersByKeywordWithPagination 根据关键字搜索用户（带分页）
+func (r *UserRepository) SearchUsersByKeywordWithPagination(keyword string, limit, offset int, currentUserID uint) ([]*model.UserProfile, int64, error) {
+	var profiles []*model.UserProfile
+	var total int64
+
+	// 构建基础查询条件
+	baseQuery := r.db.Joins("JOIN users ON users.id = user_profiles.user_id").
+		Where("users.is_active = ? AND (user_profiles.nickname ILIKE ?)",
+			true, "%"+keyword+"%")
+
+	// 如果当前用户已登录，排除屏蔽关系
+	if currentUserID != 0 {
+		// 排除被当前用户屏蔽的用户（非软删除的屏蔽记录）
+		baseQuery = baseQuery.Where("user_profiles.user_id NOT IN (?)",
+			r.db.Select("blocked_id").Table("blocked_users").Where("user_id = ? AND deleted_at IS NULL", currentUserID))
+
+		// 排除屏蔽了当前用户的用户（非软删除的屏蔽记录）
+		baseQuery = baseQuery.Where("user_profiles.user_id NOT IN (?)",
+			r.db.Select("user_id").Table("blocked_users").Where("blocked_id = ? AND deleted_at IS NULL", currentUserID))
+	}
+
+	// 获取总数
+	err := baseQuery.Model(&model.UserProfile{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取分页数据
+	err = baseQuery.Offset(offset).Limit(limit).Find(&profiles).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return profiles, total, nil
 } // GetUsersByIDs 批量获取用户信息
 func (r *UserRepository) GetUsersByIDs(userIDs []uint) ([]*model.User, error) {
 	var users []*model.User
@@ -121,4 +158,106 @@ func (r *UserRepository) GetUserSettings(userID uint) (*model.UserSetting, error
 // UpdateUserSettings 更新用户设置
 func (r *UserRepository) UpdateUserSettings(settings *model.UserSetting) error {
 	return r.db.Save(settings).Error
+}
+
+// BlockUser 屏蔽用户
+func (r *UserRepository) BlockUser(userID, blockedID uint, reason string) error {
+	// 首先检查是否存在活跃的屏蔽记录
+	var activeCount int64
+	err := r.db.Model(&model.BlockedUser{}).
+		Where("user_id = ? AND blocked_id = ? AND deleted_at IS NULL", userID, blockedID).
+		Count(&activeCount).Error
+	if err != nil {
+		return err
+	}
+
+	if activeCount > 0 {
+		return fmt.Errorf("user already blocked")
+	}
+
+	// 检查是否存在软删除的屏蔽记录
+	var existingRecord model.BlockedUser
+	err = r.db.Unscoped(). // Unscoped 查询包含软删除的记录
+				Where("user_id = ? AND blocked_id = ?", userID, blockedID).
+				First(&existingRecord).Error
+
+	if err == nil {
+		// 存在软删除的记录，恢复它
+		existingRecord.Reason = reason
+		existingRecord.DeletedAt = gorm.DeletedAt{} // 清空 deleted_at
+		return r.db.Unscoped().Save(&existingRecord).Error
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		// 数据库查询错误
+		return err
+	}
+
+	// 不存在任何记录，创建新的屏蔽记录
+	blockedUser := &model.BlockedUser{
+		UserID:    userID,
+		BlockedID: blockedID,
+		Reason:    reason,
+	}
+
+	return r.db.Create(blockedUser).Error
+}
+
+// UnblockUser 取消屏蔽用户
+func (r *UserRepository) UnblockUser(userID, blockedID uint) error {
+	result := r.db.Where("user_id = ? AND blocked_id = ?", userID, blockedID).
+		Delete(&model.BlockedUser{})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("user not blocked or already unblocked")
+	}
+
+	return nil
+}
+
+// GetBlockedUsers 获取用户屏蔽列表
+func (r *UserRepository) GetBlockedUsers(userID uint, limit, offset int) ([]*model.UserProfile, int64, error) {
+	var blockedProfiles []*model.UserProfile
+	var total int64
+
+	// 构建查询：获取被屏蔽用户的档案信息，排除软删除的屏蔽记录
+	baseQuery := r.db.Table("user_profiles").
+		Joins("JOIN blocked_users ON blocked_users.blocked_id = user_profiles.user_id").
+		Where("blocked_users.user_id = ? AND blocked_users.deleted_at IS NULL", userID)
+
+	// 获取总数
+	err := baseQuery.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取分页数据
+	err = baseQuery.Offset(offset).Limit(limit).Find(&blockedProfiles).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return blockedProfiles, total, nil
+}
+
+// IsUserBlocked 检查用户是否被屏蔽
+func (r *UserRepository) IsUserBlocked(userID, targetUserID uint) (bool, error) {
+	var count int64
+	err := r.db.Model(&model.BlockedUser{}).
+		Where("user_id = ? AND blocked_id = ? AND deleted_at IS NULL", userID, targetUserID).
+		Count(&count).Error
+
+	return count > 0, err
+}
+
+// IsBlockedBy 检查是否被某用户屏蔽
+func (r *UserRepository) IsBlockedBy(userID, byUserID uint) (bool, error) {
+	var count int64
+	err := r.db.Model(&model.BlockedUser{}).
+		Where("user_id = ? AND blocked_id = ? AND deleted_at IS NULL", byUserID, userID).
+		Count(&count).Error
+
+	return count > 0, err
 }

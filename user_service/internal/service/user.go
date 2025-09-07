@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/jacl-coder/telegramlite/user_service/internal/model"
 	"github.com/jacl-coder/telegramlite/user_service/internal/repository"
 )
@@ -110,6 +112,20 @@ func (s *UserService) SearchUsers(keyword string, limit int) ([]*model.UserProfi
 	return profiles, nil
 }
 
+// SearchUsersWithPagination 搜索用户（带分页）
+func (s *UserService) SearchUsersWithPagination(keyword string, limit, offset int, currentUserID uint) ([]*model.UserProfile, int64, error) {
+	if keyword == "" {
+		return []*model.UserProfile{}, 0, nil
+	}
+
+	profiles, total, err := s.userRepo.SearchUsersByKeywordWithPagination(keyword, limit, offset, currentUserID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to search users with pagination: %w", err)
+	}
+
+	return profiles, total, nil
+}
+
 // UpdateUserStatus 更新用户在线状态
 func (s *UserService) UpdateUserStatus(userID uint, status string) error {
 	now := time.Now()
@@ -190,4 +206,91 @@ type UpdateSettingsRequest struct {
 	ShowLastSeen         *bool `json:"show_last_seen"`
 	MessageNotifications *bool `json:"message_notifications"`
 	FriendNotifications  *bool `json:"friend_notifications"`
+}
+
+// BlockUser 屏蔽用户
+func (s *UserService) BlockUser(userID, blockedID uint, reason string) error {
+	// 验证参数
+	if userID == 0 || blockedID == 0 {
+		return fmt.Errorf("invalid user ID")
+	}
+
+	if userID == blockedID {
+		return fmt.Errorf("cannot block yourself")
+	}
+
+	// 检查被屏蔽用户是否存在
+	_, err := s.userRepo.GetUserByID(blockedID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("target user not found")
+		}
+		return fmt.Errorf("failed to check target user: %w", err)
+	}
+
+	// 执行屏蔽
+	err = s.userRepo.BlockUser(userID, blockedID, reason)
+	if err != nil {
+		return fmt.Errorf("failed to block user: %w", err)
+	}
+
+	return nil
+}
+
+// UnblockUser 取消屏蔽用户
+func (s *UserService) UnblockUser(userID, blockedID uint) error {
+	// 验证参数
+	if userID == 0 || blockedID == 0 {
+		return fmt.Errorf("invalid user ID")
+	}
+
+	// 执行取消屏蔽
+	err := s.userRepo.UnblockUser(userID, blockedID)
+	if err != nil {
+		return fmt.Errorf("failed to unblock user: %w", err)
+	}
+
+	return nil
+}
+
+// GetBlockedUsers 获取屏蔽用户列表
+func (s *UserService) GetBlockedUsers(userID uint, limit, offset int) ([]*model.UserProfile, int64, error) {
+	// 验证参数
+	if userID == 0 {
+		return nil, 0, fmt.Errorf("invalid user ID")
+	}
+
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+
+	if offset < 0 {
+		offset = 0
+	}
+
+	// 获取屏蔽列表
+	profiles, total, err := s.userRepo.GetBlockedUsers(userID, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to get blocked users: %w", err)
+	}
+
+	return profiles, total, nil
+}
+
+// IsUserBlocked 检查用户是否被屏蔽
+func (s *UserService) IsUserBlocked(userID, targetUserID uint) (bool, error) {
+	if userID == 0 || targetUserID == 0 {
+		return false, fmt.Errorf("invalid user ID")
+	}
+
+	return s.userRepo.IsUserBlocked(userID, targetUserID)
+}
+
+// IsBlockedBy 检查是否被某用户屏蔽
+func (s *UserService) IsBlockedBy(userID, byUserID uint) (bool, error) {
+	if userID == 0 || byUserID == 0 {
+		return false, fmt.Errorf("invalid user ID")
+	}
+
+	return s.userRepo.IsBlockedBy(userID, byUserID)
 }
