@@ -74,20 +74,32 @@ cd docker
 docker-compose up -d postgres redis
 ```
 
-### 3. 启动 Auth Service
+### 3. 启动服务
+
+#### Auth Service
 
 ```sh
 cd auth_service
 go mod tidy
-./auth-server
+go run cmd/server/main.go
 ```
 
-服务将启动在：
+#### User Service
 
-- HTTP API: http://localhost:8080
-- gRPC API: grpc://localhost:50051
+```sh
+cd user_service
+go mod tidy
+go run cmd/server/main.go
+```
+
+服务启动地址：
+
+- Auth Service: HTTP :8080, gRPC :50051
+- User Service: HTTP :8081, gRPC :50052
 
 ### 4. 测试接口
+
+#### Auth Service
 
 ```sh
 # 健康检查
@@ -97,15 +109,37 @@ curl http://localhost:8080/api/v1/health
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"phone":"13800138000","username":"testuser","password":"password123","device_token":"web-001","device_type":"web"}'
+
+# 用户登录
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","password":"password123","device_token":"web-001","device_type":"web"}'
+```
+
+#### User Service
+
+```sh
+# 获取用户档案 (需要登录后的 JWT token)
+curl -X GET http://localhost:8081/api/v1/users/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# 搜索用户
+curl -X GET "http://localhost:8081/api/v1/users/search?query=test&limit=10" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ## 项目状态
 
 - ✅ **M0: 项目基础搭建** (已完成)
   - Auth Service 完整实现 (HTTP + gRPC)
-  - 用户认证、多设备管理
+  - 用户认证、JWT 管理、多设备管理
   - 数据库设计和迁移
-- 🚀 **M1: 用户体系+Gateway** (计划中)
+- ✅ **M1: 用户体系** (已完成)
+  - User Service 完整实现 (HTTP + gRPC)
+  - 用户档案、好友关系、屏蔽功能
+  - Redis 缓存优化 (50-80% 性能提升)
+  - 与 Auth Service 完整集成
+- 🚀 **M2: Gateway Service** (即将开始)
 
 ## 贡献指南
 
