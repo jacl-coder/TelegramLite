@@ -1,0 +1,34 @@
+server:
+  port: 8081
+  grpc_port: 50052
+  mode: debug # debug, release
+
+database:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: "1024"
+  dbname: telegramlite
+  sslmode: disable
+
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 0
+
+auth:
+  auth_service_url: "localhost:50051" # Auth Service gRPC endpoint
+
+jwt:
+  secret: "your-secret-key-change-in-production" # Should match auth service
+
+log:
+  level: debug # debug, info, warn, error
+  format: json # json, text
+  output: file # stdout, file
+  file_path: "./logs/user-service.log"
+  max_size: 100 # MB
+  max_backups: 3
+  max_age: 7 # days
+  compress: true
+  service_name: "user-service"

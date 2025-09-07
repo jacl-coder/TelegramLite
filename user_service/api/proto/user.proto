@@ -1,0 +1,229 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/jacl-coder/telegramlite/user_service/api/proto";
+
+import "google/protobuf/timestamp.proto";
+
+// 用户档案信息
+message UserProfile {
+  uint32 id = 1;
+  uint32 user_id = 2;
+  string nickname = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string bio = 6;
+  string avatar = 7;
+  string status = 8;
+  google.protobuf.Timestamp birthday = 9;
+  string gender = 10;
+  string language = 11;
+  string timezone = 12;
+  bool is_online = 13;
+  google.protobuf.Timestamp last_seen_at = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp updated_at = 16;
+}
+
+// 好友关系
+message Friendship {
+  uint32 id = 1;
+  uint32 user_id = 2;
+  uint32 friend_id = 3;
+  string status = 4;  // pending, accepted, blocked
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  UserProfile friend_profile = 7;
+}
+
+// 用户设置
+message UserSettings {
+  uint32 id = 1;
+  uint32 user_id = 2;
+  string privacy_level = 3;
+  bool allow_search = 4;
+  bool allow_friend_req = 5;
+  bool show_online_status = 6;
+  bool show_last_seen = 7;
+  bool message_preview = 8;
+  bool sound_enabled = 9;
+  bool vibrate_enabled = 10;
+  bool push_enabled = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+// 获取用户档案请求
+message GetUserProfileRequest {
+  uint32 user_id = 1;
+}
+
+// 获取用户档案响应
+message GetUserProfileResponse {
+  UserProfile profile = 1;
+}
+
+// 更新用户档案请求
+message UpdateUserProfileRequest {
+  uint32 user_id = 1;
+  string nickname = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string bio = 5;
+  string avatar = 6;
+  string status = 7;
+  google.protobuf.Timestamp birthday = 8;
+  string gender = 9;
+  string language = 10;
+  string timezone = 11;
+}
+
+// 更新用户档案响应
+message UpdateUserProfileResponse {
+  UserProfile profile = 1;
+}
+
+// 搜索用户请求
+message SearchUsersRequest {
+  string query = 1;           // 搜索关键词
+  uint32 page = 2;            // 页码
+  uint32 page_size = 3;       // 页大小
+}
+
+// 搜索用户响应
+message SearchUsersResponse {
+  repeated UserProfile users = 1;
+  uint32 total = 2;
+  uint32 page = 3;
+  uint32 page_size = 4;
+}
+
+// 发送好友请求
+message SendFriendRequestRequest {
+  uint32 user_id = 1;
+  uint32 friend_id = 2;
+  string message = 3;  // 可选的请求消息
+}
+
+// 发送好友请求响应
+message SendFriendRequestResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 处理好友请求
+message HandleFriendRequestRequest {
+  uint32 user_id = 1;
+  uint32 friendship_id = 2;
+  bool accept = 3;  // true=接受, false=拒绝
+}
+
+// 处理好友请求响应
+message HandleFriendRequestResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 获取好友列表请求
+message GetFriendsListRequest {
+  uint32 user_id = 1;
+  string status = 2;  // pending, accepted, blocked
+  uint32 page = 3;
+  uint32 page_size = 4;
+}
+
+// 获取好友列表响应
+message GetFriendsListResponse {
+  repeated Friendship friendships = 1;
+  uint32 total = 2;
+  uint32 page = 3;
+  uint32 page_size = 4;
+}
+
+// 删除好友请求
+message RemoveFriendRequest {
+  uint32 user_id = 1;
+  uint32 friend_id = 2;
+}
+
+// 删除好友响应
+message RemoveFriendResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 屏蔽用户请求
+message BlockUserRequest {
+  uint32 user_id = 1;
+  uint32 blocked_id = 2;
+  string reason = 3;
+}
+
+// 屏蔽用户响应
+message BlockUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 获取用户设置请求
+message GetUserSettingsRequest {
+  uint32 user_id = 1;
+}
+
+// 获取用户设置响应
+message GetUserSettingsResponse {
+  UserSettings settings = 1;
+}
+
+// 更新用户设置请求
+message UpdateUserSettingsRequest {
+  uint32 user_id = 1;
+  string privacy_level = 2;
+  bool allow_search = 3;
+  bool allow_friend_req = 4;
+  bool show_online_status = 5;
+  bool show_last_seen = 6;
+  bool message_preview = 7;
+  bool sound_enabled = 8;
+  bool vibrate_enabled = 9;
+  bool push_enabled = 10;
+}
+
+// 更新用户设置响应
+message UpdateUserSettingsResponse {
+  UserSettings settings = 1;
+}
+
+// 更新在线状态请求
+message UpdateOnlineStatusRequest {
+  uint32 user_id = 1;
+  bool is_online = 2;
+}
+
+// 更新在线状态响应
+message UpdateOnlineStatusResponse {
+  bool success = 1;
+}
+
+// User Service 定义
+service UserService {
+  // 用户档案管理
+  rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse);
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse);
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
+  
+  // 好友管理
+  rpc SendFriendRequest(SendFriendRequestRequest) returns (SendFriendRequestResponse);
+  rpc HandleFriendRequest(HandleFriendRequestRequest) returns (HandleFriendRequestResponse);
+  rpc GetFriendsList(GetFriendsListRequest) returns (GetFriendsListResponse);
+  rpc RemoveFriend(RemoveFriendRequest) returns (RemoveFriendResponse);
+  rpc BlockUser(BlockUserRequest) returns (BlockUserResponse);
+  
+  // 用户设置
+  rpc GetUserSettings(GetUserSettingsRequest) returns (GetUserSettingsResponse);
+  rpc UpdateUserSettings(UpdateUserSettingsRequest) returns (UpdateUserSettingsResponse);
+  
+  // 状态管理
+  rpc UpdateOnlineStatus(UpdateOnlineStatusRequest) returns (UpdateOnlineStatusResponse);
+}
