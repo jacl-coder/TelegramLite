@@ -4,9 +4,72 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+
+	"github.com/jacl-coder/telegramlite/user_service/internal/model"
+	"github.com/jacl-coder/telegramlite/user_service/internal/repository"
 )
 
+// stringPtr 返回字符串指针
+func stringPtr(s string) *string {
+	return &s
+}
+
+// setupTestDB 设置测试数据库
+func setupTestDB(t *testing.T) *gorm.DB {
+	// 使用内存SQLite数据库进行测试
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("Failed to connect to test database: %v", err)
+	}
+
+	// 自动迁移测试表
+	err = db.AutoMigrate(
+		&model.User{},
+		&model.UserProfile{},
+		&model.FriendRequest{},
+		&model.Friendship{},
+		&model.UserSetting{},
+		&model.BlockedUser{},
+	)
+	if err != nil {
+		t.Fatalf("Failed to migrate test database: %v", err)
+	}
+
+	return db
+}
+
 func TestUserService_GetUserProfile(t *testing.T) {
+	// 设置测试数据库
+	testDB := setupTestDB(t)
+
+	// 临时替换全局DB实例用于测试
+	originalDB := repository.DB
+	repository.DB = testDB
+	defer func() {
+		repository.DB = originalDB
+	}()
+
+	// 创建测试数据
+	testUser := &model.User{
+		ID:       1,
+		Username: "testuser",
+		Phone:    "13812345678",
+		Email:    "test@example.com",
+		IsActive: true,
+	}
+	testDB.Create(testUser)
+
+	testProfile := &model.UserProfile{
+		UserID:    1,
+		Nickname:  "Test User",
+		FirstName: "Test",
+		LastName:  "User",
+		Bio:       "Test bio",
+	}
+	testDB.Create(testProfile)
+
 	tests := []struct {
 		name    string
 		userID  uint
@@ -22,7 +85,13 @@ func TestUserService_GetUserProfile(t *testing.T) {
 		{
 			name:    "valid user ID",
 			userID:  1,
-			wantErr: false, // 这里可能因为没有初始化数据库而失败，但至少验证了输入验证
+			wantErr: false,
+		},
+		{
+			name:    "user not found",
+			userID:  999,
+			wantErr: true,
+			errMsg:  "user profile not found",
 		},
 	}
 
@@ -37,17 +106,44 @@ func TestUserService_GetUserProfile(t *testing.T) {
 				assert.Contains(t, err.Error(), tt.errMsg)
 				assert.Nil(t, result)
 			} else {
-				// 注意: 在没有初始化数据库的情况下，这里可能会失败
-				// 这只是一个基本的结构测试
-				if err != nil {
-					t.Logf("Expected no error for valid input, but got: %v", err)
-				}
+				assert.NoError(t, err)
+				assert.NotNil(t, result)
+				assert.Equal(t, tt.userID, result.UserID)
 			}
 		})
 	}
 }
 
 func TestUserService_UpdateUserProfile(t *testing.T) {
+	// 设置测试数据库
+	testDB := setupTestDB(t)
+
+	// 临时替换全局DB实例用于测试
+	originalDB := repository.DB
+	repository.DB = testDB
+	defer func() {
+		repository.DB = originalDB
+	}()
+
+	// 创建测试数据
+	testUser := &model.User{
+		ID:       1,
+		Username: "testuser",
+		Phone:    "13812345678",
+		Email:    "test@example.com",
+		IsActive: true,
+	}
+	testDB.Create(testUser)
+
+	testProfile := &model.UserProfile{
+		UserID:    1,
+		Nickname:  "Test User",
+		FirstName: "Test",
+		LastName:  "User",
+		Bio:       "Test bio",
+	}
+	testDB.Create(testProfile)
+
 	tests := []struct {
 		name    string
 		userID  uint
@@ -68,6 +164,17 @@ func TestUserService_UpdateUserProfile(t *testing.T) {
 			req:     nil,
 			wantErr: true,
 			errMsg:  "update request cannot be nil",
+		},
+		{
+			name:   "valid update",
+			userID: 1,
+			req: &UpdateProfileRequest{
+				Nickname:  stringPtr("Updated Nickname"),
+				FirstName: stringPtr("Updated"),
+				LastName:  stringPtr("User"),
+				Bio:       stringPtr("Updated bio"),
+			},
+			wantErr: false,
 		},
 	}
 
